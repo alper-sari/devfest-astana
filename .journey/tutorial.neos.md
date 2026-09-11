@@ -54,7 +54,7 @@ echo "Region: $REGION"
 Make sure you are in the repository directory and explore the agent structure:
 
 ```bash
-cd ~/cloudshell_open/devfest-astana 2>/dev/null || cd $(git rev-parse --show-toplevel 2>/dev/null)
+cd ~/cloudshell_open/devfest-astana
 ls -la devops_agent
 ```
 
@@ -93,19 +93,7 @@ In traditional setups, workloads inherit a project Service Account. In Google Cl
 Run the following command to provision a new Agent Engine instance configured with native `AGENT_IDENTITY`:
 
 ```bash
-RESPONSE=$(curl -s -X POST \
-  -H "Authorization: Bearer $(gcloud auth print-access-token)" \
-  -H "Content-Type: application/json" \
-  https://${REGION}-aiplatform.googleapis.com/v1beta1/projects/${PROJECT_ID}/locations/${REGION}/reasoningEngines \
-  -d '{"spec": {"identityType": "AGENT_IDENTITY"}}')
-
-export AGENT_ENGINE_ID=$(echo $RESPONSE | jq -r '.name' | sed -E 's/.*reasoningEngines\/([0-9]+).*/\1/')
-echo $AGENT_ENGINE_ID > .engine_id
-
-echo "--------------------------------------------------------"
-echo "Agent Engine created with AGENT_IDENTITY!"
-echo "Agent Engine ID: $AGENT_ENGINE_ID"
-echo "--------------------------------------------------------"
+bash scripts/create_engine.sh
 ```
 
 ## Inspect the SPIFFE Identity
@@ -130,7 +118,7 @@ Notice that there is **NO** service account attached! The agent's identity is a 
 Now let's package and deploy our DevOps agent code into the newly created Agent Engine instance using ADK:
 
 ```bash
-cd ~/cloudshell_open/devfest-astana 2>/dev/null || cd $(git rev-parse --show-toplevel 2>/dev/null)
+cd ~/cloudshell_open/devfest-astana
 export AGENT_ENGINE_ID=$(cat .engine_id)
 
 adk deploy agent_engine \
@@ -254,9 +242,5 @@ You have successfully built, deployed, and secured a production-grade DevOps Age
 To avoid ongoing charges on your project, you can delete the deployed Reasoning Engine instance:
 
 ```bash
-export AGENT_ENGINE_ID=$(cat .engine_id)
-curl -s -X DELETE \
-  -H "Authorization: Bearer $(gcloud auth print-access-token)" \
-  https://$REGION-aiplatform.googleapis.com/v1beta1/projects/$PROJECT_NUMBER/locations/$REGION/reasoningEngines/$AGENT_ENGINE_ID
-echo "Deleted Agent Engine instance."
+bash scripts/delete_engine.sh
 ```
