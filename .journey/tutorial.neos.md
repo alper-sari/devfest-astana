@@ -11,28 +11,33 @@
 
 ![Tutorial header image](https://raw.githubusercontent.com/NucleusEngineering/serverless/main/.images/run.jpg)
 
-Welcome to **DevFest Astana**! In this hands-on workshop, you will learn how to build and deploy an autonomous **DevOps & SRE Agent** using Google Cloud's **Agent Development Kit (ADK)** and **Gemini 3.8 Flash**.
+Welcome to **DevFest Astana**! In this hands-on workshop, you will build and deploy an autonomous **DevOps & SRE Agent** using Google Cloud's **Agent Development Kit (ADK)** and **Gemini 3.8 Flash**.
 
-Crucially, we will **NOT** use traditional Service Account keys or assign broad Service Account roles. Instead, we will deploy the agent to Google's **Vertex AI Agent Engine** using **Native SPIFFE Workload Identity (`AGENT_IDENTITY`)**.
+Crucially, we will **NOT** use traditional Service Account keys or assign broad Service Account roles. Instead, we deploy to Google's **Vertex AI Agent Engine** using **Native SPIFFE Workload Identity (`AGENT_IDENTITY`)**.
+
+You will experience real-world **Zero Trust** security:
+1. Deploy the agent with **zero permissions** and observe an immediate **`403 Forbidden`** error in the Vertex AI Console Playground.
+2. Grant read permissions **strictly** to the agent's cryptographic SPIFFE identity.
+3. Watch the agent instantly succeed in discovering your cloud infrastructure!
 
 <walkthrough-tutorial-difficulty difficulty="2"></walkthrough-tutorial-difficulty>
 
 Estimated time:
-<walkthrough-tutorial-duration duration="35"></walkthrough-tutorial-duration>
+<walkthrough-tutorial-duration duration="30"></walkthrough-tutorial-duration>
 
 To get started, click **Start**.
 
 ## Project Setup
 
-First, make sure you have the correct Google Cloud project selected with billing enabled.
+Make sure your Google Cloud project is selected with billing enabled.
 
 <walkthrough-project-setup billing="true"></walkthrough-project-setup>
 
-Next, enable the required APIs for Vertex AI, Cloud Storage, Cloud Run, and Cloud Build.
+Enable the required Google Cloud APIs for Vertex AI, Cloud Storage, Cloud Run, and Cloud Build:
 
 <walkthrough-enable-apis apis="aiplatform.googleapis.com,run.googleapis.com,cloudbuild.googleapis.com,storage.googleapis.com"></walkthrough-enable-apis>
 
-Set your project environment variables in Cloud Shell:
+Set up your project environment variables in Cloud Shell:
 
 ```bash
 export PROJECT_ID=$(gcloud config get-value project)
@@ -55,8 +60,8 @@ ls -la devops_agent
 
 The agent is organized into three primary files:
 - <walkthrough-editor-open-file filePath="devops_agent/agent.py">`devops_agent/agent.py`</walkthrough-editor-open-file>: Defines the ADK `Agent` powered by **Gemini 3.8 Flash** with system instructions.
-- <walkthrough-editor-open-file filePath="devops_agent/tools.py">`devops_agent/tools.py`</walkthrough-editor-open-file>: Implements DevOps tools (GCS bucket audits, Cloud Run inspection, and SPIFFE identity self-verification).
-- <walkthrough-editor-open-file filePath="devops_agent/requirements.txt">`devops_agent/requirements.txt`</walkthrough-editor-open-file>: Python dependencies (`google-adk`, `google-cloud-aiplatform[agent_engines]`, `google-cloud-storage`, `google-cloud-run`).
+- <walkthrough-editor-open-file filePath="devops_agent/tools.py">`devops_agent/tools.py`</walkthrough-editor-open-file>: Implements DevOps observation tools (Cloud Storage audits, Cloud Run inspection, and SPIFFE identity self-verification).
+- <walkthrough-editor-open-file filePath="devops_agent/requirements.txt">`devops_agent/requirements.txt`</walkthrough-editor-open-file>: Dependencies (`google-adk`, `google-cloud-aiplatform[agent_engines]`, `google-cloud-storage`, `google-cloud-run`).
 
 Let's inspect the agent definition:
 
@@ -66,18 +71,16 @@ cat devops_agent/agent.py
 
 Notice that the agent connects to Vertex AI using `gemini-3.8-flash` on the global endpoint, and registers tools for infrastructure observation without embedding any credentials or keys.
 
-## Install ADK and Dependencies
+## Install ADK CLI
 
-We use `uv` (or `pip`) in Cloud Shell to manage our environment and run the Google Agent Development Kit CLI (`adk`).
-
-Run the following commands to install dependencies:
+We install the Google Agent Development Kit CLI (`adk`) to deploy our agent package to Vertex AI:
 
 ```bash
-python3 -m pip install --upgrade uv
-uv pip install --system google-adk "google-cloud-aiplatform[adk,agent_engines]"
+python3 -m pip install --quiet --upgrade uv
+uv pip install --system --quiet google-adk "google-cloud-aiplatform[adk,agent_engines]"
 ```
 
-Verify that the ADK CLI is available:
+Verify that the ADK CLI is ready:
 
 ```bash
 adk --help
@@ -85,36 +88,24 @@ adk --help
 
 ## Provision Agent Engine with Native `AGENT_IDENTITY`
 
-In traditional architectures, workloads require a Service Account. In Google Cloud's modern Agent architecture, we provision a dedicated **`AGENT_IDENTITY` (SPIFFE)**.
+In traditional setups, workloads inherit a project Service Account. In Google Cloud's modern Agent architecture, we provision a dedicated **`AGENT_IDENTITY` (SPIFFE)**.
 
-Run the Python script below to create an Agent Engine instance configured with `IdentityType.AGENT_IDENTITY`:
-
-```bash
-python3 -c "
-import vertexai
-from vertexai import types
-
-client = vertexai.Client(project='$PROJECT_ID', location='$REGION')
-engine = client.agent_engines.create(
-    config={'identity_type': types.IdentityType.AGENT_IDENTITY}
-)
-resource_name = engine.api_resource.name
-engine_id = resource_name.split('/')[-1]
-
-with open('.engine_id', 'w') as f:
-    f.write(engine_id)
-
-print(f'Successfully created Agent Engine with AGENT_IDENTITY!')
-print(f'Engine Resource: {resource_name}')
-print(f'Engine ID: {engine_id}')
-"
-```
-
-Let's export the Engine ID to our environment:
+Run the following command to provision a new Agent Engine instance configured with native `AGENT_IDENTITY`:
 
 ```bash
-export AGENT_ENGINE_ID=$(cat .engine_id)
+RESPONSE=$(curl -s -X POST \
+  -H "Authorization: Bearer $(gcloud auth print-access-token)" \
+  -H "Content-Type: application/json" \
+  https://${REGION}-aiplatform.googleapis.com/v1beta1/projects/${PROJECT_ID}/locations/${REGION}/reasoningEngines \
+  -d '{"spec": {"identityType": "AGENT_IDENTITY"}}')
+
+export AGENT_ENGINE_ID=$(echo $RESPONSE | jq -r '.name' | sed -E 's/.*reasoningEngines\/([0-9]+).*/\1/')
+echo $AGENT_ENGINE_ID > .engine_id
+
+echo "--------------------------------------------------------"
+echo "🎉 Agent Engine created with AGENT_IDENTITY!"
 echo "Agent Engine ID: $AGENT_ENGINE_ID"
+echo "--------------------------------------------------------"
 ```
 
 ## Inspect the SPIFFE Identity
@@ -132,7 +123,7 @@ You will observe:
 - **`identityType`**: `"AGENT_IDENTITY"`
 - **`effectiveIdentity`**: `agents.global.proj-<PROJECT_NUMBER>.system.id.goog/...`
 
-Notice that there is **NO** service account email attached to the agent! The agent's identity is a cryptographically attested SPIFFE URI under Google's system trust domain.
+Notice that there is **NO** service account attached! The agent's identity is a cryptographically attested SPIFFE URI under Google's system trust domain.
 
 ## Deploy Agent Source Code
 
@@ -140,6 +131,8 @@ Now let's package and deploy our DevOps agent code into the newly created Agent 
 
 ```bash
 cd ~/cloudshell_open/devfest-astana 2>/dev/null || cd $(git rev-parse --show-toplevel 2>/dev/null)
+export AGENT_ENGINE_ID=$(cat .engine_id)
+
 adk deploy agent_engine \
   --project=$PROJECT_ID \
   --region=$REGION \
@@ -147,42 +140,41 @@ adk deploy agent_engine \
   devops_agent
 ```
 
-Cloud Build will package the container and deploy it to the serverless Reasoning Engine runtime. This typically takes 2–3 minutes.
+Cloud Build will package the container and deploy it to the serverless Reasoning Engine runtime. This takes approximately 2–3 minutes.
 
-Once completed, you'll see a success message with your direct Console Playground URL!
+When finished, proceed to the next step to test the agent in the Google Cloud Console UI!
 
-## Zero Trust in Action: Triggering 403 Forbidden
+## Zero Trust Test: 403 Forbidden in UI
 
-In a Zero Trust architecture, workloads start with **Zero Permissions**. Because we did not attach a service account (or any broad default role), our agent has no access to Google Cloud Storage.
-
-Let's test this by asking the agent to list storage buckets:
+Generate your direct link to the **Vertex AI Agent Engine Console Playground**:
 
 ```bash
-curl -s -X POST \
-  -H "Authorization: Bearer $(gcloud auth print-access-token)" \
-  -H "Content-Type: application/json" \
-  https://$REGION-aiplatform.googleapis.com/v1beta1/projects/$PROJECT_NUMBER/locations/$REGION/reasoningEngines/$AGENT_ENGINE_ID:streamQuery \
-  -d '{
-    "class_method": "async_stream_query",
-    "input": {
-      "user_id": "workshop-attendee",
-      "message": "List the storage buckets in our project"
-    }
-  }'
+export AGENT_ENGINE_ID=$(cat .engine_id)
+echo "👉 Open Agent Playground in Google Cloud Console:"
+echo "https://console.cloud.google.com/vertex-ai/agents/agent-engines/locations/$REGION/agent-engines/$AGENT_ENGINE_ID/playground?project=$PROJECT_ID"
 ```
 
-Observe the response! The agent tool calls `list_storage_buckets` and receives:
+### Action in Playground UI:
+1. Click the URL printed above to open the **Playground** tab in your browser.
+2. In the chat box at the bottom, type the following prompt and press Enter:
 
 ```text
-403 GET ...: Caller does not have storage.buckets.list access to the Google Cloud project.
-Permission 'storage.buckets.list' denied on resource.
+List the storage buckets in our project
 ```
 
-Gemini 3.8 Flash catches this error, analyzes its own SPIFFE security context, and explains to the user that it lacks permissions and needs an IAM role bound to its SPIFFE principal!
+3. **Observe the result:**
+   The agent executes the `list_storage_buckets` tool and immediately receives a **`403 Forbidden`** error!
+   
+   > `403 GET ... Caller does not have storage.buckets.list access to the Google Cloud project.`
 
-## Authorize the Agent via SPIFFE Workload Identity
+**Why did this happen?**
+Because this agent uses **Native `AGENT_IDENTITY`**, it does not inherit broad default service account permissions. It starts with **Zero Permissions**!
 
-Now, let's grant the necessary read permission **strictly** to the agent's cryptographic SPIFFE identity:
+## Grant Access via SPIFFE Identity
+
+Now let's grant the agent read access. Instead of granting permissions to a user or service account, we bind **`roles/viewer`** directly to the agent's **cryptographic SPIFFE identity**:
+
+Run this command in Cloud Shell:
 
 ```bash
 gcloud projects add-iam-policy-binding $PROJECT_ID \
@@ -190,45 +182,51 @@ gcloud projects add-iam-policy-binding $PROJECT_ID \
   --role="roles/viewer"
 ```
 
-Notice what we did:
-1. We did **NOT** create or distribute a JSON private key.
-2. We did **NOT** grant permissions to a user or broad service account.
-3. We bound the `roles/viewer` role directly to the `principalSet://agents.global...` SPIFFE identity.
+Notice:
+- No service account keys were generated or downloaded.
+- No static credentials exist in our code or container.
+- Permissions are scoped strictly to the `principalSet://agents.global...` identity!
 
-## Verify Authorized Access
+## Live Verification: Success in UI!
 
-Now that permissions are bound to the SPIFFE principal, let's re-run the query:
+Switch back to your **Vertex AI Agent Engine Playground** browser tab.
 
-```bash
-curl -s -X POST \
-  -H "Authorization: Bearer $(gcloud auth print-access-token)" \
-  -H "Content-Type: application/json" \
-  https://$REGION-aiplatform.googleapis.com/v1beta1/projects/$PROJECT_NUMBER/locations/$REGION/reasoningEngines/$AGENT_ENGINE_ID:streamQuery \
-  -d '{
-    "class_method": "async_stream_query",
-    "input": {
-      "user_id": "workshop-attendee",
-      "message": "List the storage buckets in our project and verify your SPIFFE identity"
-    }
-  }'
+Send the exact same prompt again:
+
+```text
+List the storage buckets in our project and verify your SPIFFE identity
 ```
 
-Success! The agent now successfully executes `list_storage_buckets` and `get_agent_spiffe_identity`, returning:
-1. A complete overview table of all GCS buckets in your project.
-2. Security posture audit (Uniform Bucket-Level Access status).
-3. Verified SPIFFE identity details and trust domain.
+### Observe the Result:
+Now that the SPIFFE principal has `roles/viewer`, the agent immediately succeeds!
 
-## Interactive Console Playground
+You will see:
+1. **SPIFFE Identity Verification Table**: Showing the agent's trust domain and cryptographic identity.
+2. **Storage Buckets Overview Table**: Listing all Cloud Storage buckets in your project with their location and security posture (Uniform Bucket-Level Access).
 
-You can also chat interactively with your DevOps Agent via the Google Cloud Console UI:
+## Optional: Prove Zero Trust by Revoking Access
 
-1. Open the [Vertex AI Agent Engine Console](https://console.cloud.google.com/vertex-ai/agents/agent-engines).
-2. Select **DevOps Agent** (`$AGENT_ENGINE_ID`).
-3. Click on the **Playground** tab.
-4. Try asking questions such as:
-   - *"What is your SPIFFE identity and security model?"*
-   - *"List our Cloud Run serverless services and check their health."*
-   - *"Which buckets currently have Uniform Bucket-Level Access disabled?"*
+Want to prove to your audience that access is 100% controlled by this SPIFFE binding?
+
+Remove the role from the SPIFFE principal in Cloud Shell:
+
+```bash
+gcloud projects remove-iam-policy-binding $PROJECT_ID \
+  --member="principalSet://agents.global.proj-$PROJECT_NUMBER.system.id.goog/attribute.platformContainer/aiplatform/projects/$PROJECT_NUMBER" \
+  --role="roles/viewer"
+```
+
+Now switch back to the **Playground UI** and ask:
+
+```text
+List the storage buckets in our project
+```
+
+The agent will **immediately return 403 Forbidden again**!
+
+This unequivocally proves:
+- **Permission present** ➡️ Agent can observe infrastructure.
+- **Permission removed** ➡️ Zero ambient access, zero credential leakage.
 
 ## Congratulations!
 
@@ -238,9 +236,9 @@ You have successfully built and deployed a production-grade DevOps Agent on Goog
 
 ### What you learned:
 * How to use Google's **Agent Development Kit (ADK)** with **Gemini 3.8 Flash**.
-* The difference between legacy Service Accounts and **Native SPIFFE `AGENT_IDENTITY`**.
-* Enforcing **Zero Trust**: Observing real-time `403 Forbidden` errors until permissions are explicitly granted.
-* Granting granular IAM roles directly to `principalSet://agents.global...` principals.
+* The paradigm shift from static Service Accounts to **Native SPIFFE `AGENT_IDENTITY`**.
+* Enforcing **Zero Trust**: Seeing live 403 Forbidden errors until permissions are explicitly granted.
+* Granting and revoking granular IAM roles directly to `principalSet://agents.global...` principals.
 
 <walkthrough-inline-feedback></walkthrough-inline-feedback>
 
@@ -249,10 +247,9 @@ You have successfully built and deployed a production-grade DevOps Agent on Goog
 To avoid ongoing charges on your project, you can delete the deployed Reasoning Engine instance:
 
 ```bash
-python3 -c "
-import vertexai
-client = vertexai.Client(project='$PROJECT_ID', location='$REGION')
-client.agent_engines.delete(name='projects/$PROJECT_NUMBER/locations/$REGION/reasoningEngines/$AGENT_ENGINE_ID')
-print('Deleted Agent Engine instance.')
-"
+export AGENT_ENGINE_ID=$(cat .engine_id)
+curl -s -X DELETE \
+  -H "Authorization: Bearer $(gcloud auth print-access-token)" \
+  https://$REGION-aiplatform.googleapis.com/v1beta1/projects/$PROJECT_NUMBER/locations/$REGION/reasoningEngines/$AGENT_ENGINE_ID
+echo "Deleted Agent Engine instance."
 ```
