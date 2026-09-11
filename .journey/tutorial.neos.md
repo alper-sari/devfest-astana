@@ -103,7 +103,7 @@ export AGENT_ENGINE_ID=$(echo $RESPONSE | jq -r '.name' | sed -E 's/.*reasoningE
 echo $AGENT_ENGINE_ID > .engine_id
 
 echo "--------------------------------------------------------"
-echo "🎉 Agent Engine created with AGENT_IDENTITY!"
+echo "Agent Engine created with AGENT_IDENTITY!"
 echo "Agent Engine ID: $AGENT_ENGINE_ID"
 echo "--------------------------------------------------------"
 ```
@@ -150,7 +150,7 @@ Generate your direct link to the **Vertex AI Agent Engine Console Playground**:
 
 ```bash
 export AGENT_ENGINE_ID=$(cat .engine_id)
-echo "👉 Open Agent Playground in Google Cloud Console:"
+echo "Open Agent Playground in Google Cloud Console:"
 echo "https://console.cloud.google.com/vertex-ai/agents/agent-engines/locations/$REGION/agent-engines/$AGENT_ENGINE_ID/playground?project=$PROJECT_ID"
 ```
 
