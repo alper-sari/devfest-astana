@@ -1,0 +1,9 @@
+google-adk>=2.9.0
+google-cloud-aiplatform[adk,agent_engines]
+google-genai>=1.0.0
+google-cloud-storage>=2.14.0
+google-cloud-run>=0.10.0
+google-cloud-billing>=1.14.0
+pydantic>=2.0.0
+fastapi>=0.115.0
+uvicorn>=0.30.0
