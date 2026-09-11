@@ -1,4 +1,4 @@
-# DevOps Agent with Vertex AI Agent Engine & Native SPIFFE Identity
+# Not Risky Anymore: Enforcing Native IAM Boundaries for Production AI Agents
 
 > **DevFest Astana Hands-on Workshop**: Build, deploy, and secure an autonomous DevOps & SRE AI Agent using Google Cloud's **Agent Development Kit (ADK)**, **Gemini 3.8 Flash**, and **Vertex AI Agent Engine** with **Zero Service Accounts** and **Native SPIFFE Workload Identity**.
 
@@ -106,6 +106,14 @@ adk deploy agent_engine \
 1. **Compare Models**: Explain how **Gemini 3.8 Flash** brings state-of-the-art agentic tool calling and reasoning with sub-second latency.
 2. **Demonstrate Zero Trust**: Show the agent failing with `403 Forbidden` before permissions are granted, proving that no ambient service account access exists.
 3. **Grant Granular IAM**: Bind `roles/viewer` directly to `principalSet://agents.global.proj-<NUM>.system.id.goog/attribute.platformContainer/aiplatform/projects/<NUM>` and watch the agent immediately succeed.
+
+---
+
+## 👨‍💻 Workshop Author
+
+**Alper Sarı**  
+*Google Developer Expert (GDE) on Google Cloud*  
+*DevFest Astana*
 
 ---
 

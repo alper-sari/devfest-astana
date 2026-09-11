@@ -1,11 +1,11 @@
 <!--markdownlint-disable MD024 MD033 MD036 MD041 -->
 <walkthrough-metadata>
-  <meta name="title" content="Deploy DevOps Agent with Vertex AI Agent Engine and Native SPIFFE Identity" />
+  <meta name="title" content="Not Risky Anymore: Enforcing Native IAM Boundaries for Production AI Agents" />
   <meta name="description" content="Learn how to build a DevOps AI agent with Gemini 3.8 Flash, deploy to Vertex AI Agent Engine with Zero Service Accounts, and manage permissions using native SPIFFE Agent Identity." />
   <meta name="keywords" content="Gemini, Google Cloud, Vertex AI, Agent Engine, ADK, SPIFFE, Agent Identity, Zero Trust, DevOps" />
 </walkthrough-metadata>
 
-# Build a DevOps Agent with Vertex AI & Native SPIFFE Identity
+# Not Risky Anymore: Enforcing Native IAM Boundaries for Production AI Agents
 
 ## Let's get started
 
@@ -232,13 +232,20 @@ This unequivocally proves:
 
 <walkthrough-conclusion-trophy></walkthrough-conclusion-trophy>
 
-You have successfully built and deployed a production-grade DevOps Agent on Google Cloud with Native SPIFFE Agent Identity!
+You have successfully built, deployed, and secured a production-grade DevOps Agent on Google Cloud with Native SPIFFE Agent Identity!
 
 ### What you learned:
 * How to use Google's **Agent Development Kit (ADK)** with **Gemini 3.8 Flash**.
 * The paradigm shift from static Service Accounts to **Native SPIFFE `AGENT_IDENTITY`**.
 * Enforcing **Zero Trust**: Seeing live 403 Forbidden errors until permissions are explicitly granted.
 * Granting and revoking granular IAM roles directly to `principalSet://agents.global...` principals.
+
+---
+
+### 👨‍💻 Workshop Author
+**Prepared by:** **Alper Sarı**  
+*Google Developer Expert (GDE) on Google Cloud*  
+*DevFest Astana*
 
 <walkthrough-inline-feedback></walkthrough-inline-feedback>
 
