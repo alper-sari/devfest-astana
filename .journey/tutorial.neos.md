@@ -55,6 +55,7 @@ Make sure you are in the repository directory and explore the agent structure:
 
 ```bash
 cd ~/cloudshell_open/devfest-astana
+git pull
 ls -la devops_agent
 ```
 
@@ -93,6 +94,7 @@ In traditional setups, workloads inherit a project Service Account. In Google Cl
 Run the following command to provision a new Agent Engine instance configured with native `AGENT_IDENTITY`:
 
 ```bash
+git pull
 bash scripts/create_engine.sh
 ```
 
