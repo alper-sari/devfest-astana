@@ -46,22 +46,22 @@ echo "Region: $REGION"
 
 ## Explore the DevOps Agent Code
 
-Let's navigate to the agent directory and explore its structure.
+Make sure you are in the repository directory and explore the agent structure:
 
 ```bash
-cd devfest-astana/devops_agent
-ls -la
+cd ~/cloudshell_open/devfest-astana 2>/dev/null || cd $(git rev-parse --show-toplevel 2>/dev/null)
+ls -la devops_agent
 ```
 
 The agent is organized into three primary files:
-- `agent.py`: Defines the ADK `Agent` powered by **Gemini 3.8 Flash** with system instructions.
-- `tools.py`: Implements DevOps tools (GCS bucket audits, Cloud Run inspection, and SPIFFE identity self-verification).
-- `requirements.txt`: Python dependencies (`google-adk`, `google-cloud-aiplatform[agent_engines]`, `google-cloud-storage`, `google-cloud-run`).
+- <walkthrough-editor-open-file filePath="devops_agent/agent.py">`devops_agent/agent.py`</walkthrough-editor-open-file>: Defines the ADK `Agent` powered by **Gemini 3.8 Flash** with system instructions.
+- <walkthrough-editor-open-file filePath="devops_agent/tools.py">`devops_agent/tools.py`</walkthrough-editor-open-file>: Implements DevOps tools (GCS bucket audits, Cloud Run inspection, and SPIFFE identity self-verification).
+- <walkthrough-editor-open-file filePath="devops_agent/requirements.txt">`devops_agent/requirements.txt`</walkthrough-editor-open-file>: Python dependencies (`google-adk`, `google-cloud-aiplatform[agent_engines]`, `google-cloud-storage`, `google-cloud-run`).
 
-Let's view the agent definition:
+Let's inspect the agent definition:
 
 ```bash
-cat agent.py
+cat devops_agent/agent.py
 ```
 
 Notice that the agent connects to Vertex AI using `gemini-3.8-flash` on the global endpoint, and registers tools for infrastructure observation without embedding any credentials or keys.
@@ -139,7 +139,7 @@ Notice that there is **NO** service account email attached to the agent! The age
 Now let's package and deploy our DevOps agent code into the newly created Agent Engine instance using ADK:
 
 ```bash
-cd ..
+cd ~/cloudshell_open/devfest-astana 2>/dev/null || cd $(git rev-parse --show-toplevel 2>/dev/null)
 adk deploy agent_engine \
   --project=$PROJECT_ID \
   --region=$REGION \

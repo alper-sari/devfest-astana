@@ -67,7 +67,7 @@ devfest-astana/
 ### 1. Clone & Setup
 ```bash
 git clone https://github.com/alper-sari/devfest-astana.git
-cd devfest-astana/devops_agent
+cd devfest-astana
 ```
 
 ### 2. Install Dependencies
