@@ -54,6 +54,7 @@ devfest-astana/
 │   ├── __init__.py              # ADK agent package initialization
 │   ├── agent.py                 # Root Agent definition & Gemini 3.8 Flash config
 │   ├── tools.py                 # SRE inspection tools (Storage, Run, SPIFFE)
+│   ├── engine_spec.json         # AGENT_IDENTITY configuration
 │   ├── requirements.txt         # Container dependencies
 │   └── .env                     # Runtime environment variables
 ├── context.md                   # Architecture notes & reference documentation
@@ -78,16 +79,12 @@ uv pip install --system google-adk "google-cloud-aiplatform[adk,agent_engines]"
 
 ### 3. Provision Native Agent Identity
 ```bash
-python3 -c "
-import vertexai
-from vertexai import types
-
-client = vertexai.Client(project='YOUR_PROJECT_ID', location='us-central1')
-engine = client.agent_engines.create(
-    config={'identity_type': types.IdentityType.AGENT_IDENTITY}
-)
-print('Agent Engine Created:', engine.api_resource.name)
-"
+curl -X POST \
+  -H "Authorization: Bearer $(gcloud auth print-access-token)" \
+  -H "Content-Type: application/json" \
+  -d @devops_agent/engine_spec.json \
+  https://us-central1-aiplatform.googleapis.com/v1beta1/projects/YOUR_PROJECT_ID/locations/us-central1/reasoningEngines \
+  -o create_engine.json
 ```
 
 ### 4. Deploy Agent Code

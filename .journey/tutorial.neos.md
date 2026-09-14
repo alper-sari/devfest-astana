@@ -87,26 +87,53 @@ Verify that the ADK CLI is ready:
 adk --help
 ```
 
-## Provision Agent Engine with Native `AGENT_IDENTITY`
+## Review the AGENT_IDENTITY Specification
 
 In traditional setups, workloads inherit a project Service Account. In Google Cloud's modern Agent architecture, we provision a dedicated **`AGENT_IDENTITY` (SPIFFE)**.
 
-Run the following command to provision a new Agent Engine instance configured with native `AGENT_IDENTITY`:
+Let's inspect the declarative specification file:
 
 ```bash
-git pull
-bash scripts/create_engine.sh
+cat devops_agent/engine_spec.json
+```
+
+Notice `identityType: "AGENT_IDENTITY"`. This instructs Vertex AI to issue a cryptographic SPIFFE URI instead of attaching a service account.
+
+## Provision the Agent Engine Instance
+
+Call the Vertex AI Reasoning Engines API using your project credentials and the specification file:
+
+```bash
+curl -X POST \
+  -H "Authorization: Bearer $(gcloud auth print-access-token)" \
+  -H "Content-Type: application/json" \
+  -d @devops_agent/engine_spec.json \
+  https://$REGION-aiplatform.googleapis.com/v1beta1/projects/$PROJECT_ID/locations/$REGION/reasoningEngines \
+  -o create_engine.json
+```
+
+The response is saved to `create_engine.json`.
+
+## Capture the Agent Engine ID
+
+Extract the provisioned instance ID from the API response and save it for subsequent deployment steps:
+
+```bash
+export AGENT_ENGINE_ID=$(jq -r '.name' create_engine.json | cut -d'/' -f6)
+echo $AGENT_ENGINE_ID > .engine_id
+echo "Provisioned Agent Engine ID: $AGENT_ENGINE_ID"
 ```
 
 ## Inspect the SPIFFE Identity
 
 Let's verify that Google Cloud has assigned a native SPIFFE identity rather than a service account!
 
-Run a GET request to inspect the resource:
+Query the instance specification:
 
 ```bash
-curl -s -H "Authorization: Bearer $(gcloud auth print-access-token)" \
-  https://$REGION-aiplatform.googleapis.com/v1beta1/projects/$PROJECT_NUMBER/locations/$REGION/reasoningEngines/$AGENT_ENGINE_ID | grep -E "(identityType|effectiveIdentity)"
+curl -s \
+  -H "Authorization: Bearer $(gcloud auth print-access-token)" \
+  https://$REGION-aiplatform.googleapis.com/v1beta1/projects/$PROJECT_NUMBER/locations/$REGION/reasoningEngines/$AGENT_ENGINE_ID | jq '.spec'
 ```
 
 You will observe:
@@ -244,5 +271,9 @@ You have successfully built, deployed, and secured a production-grade DevOps Age
 To avoid ongoing charges on your project, you can delete the deployed Reasoning Engine instance:
 
 ```bash
-bash scripts/delete_engine.sh
+export AGENT_ENGINE_ID=$(cat .engine_id)
+curl -s -X DELETE \
+  -H "Authorization: Bearer $(gcloud auth print-access-token)" \
+  "https://$REGION-aiplatform.googleapis.com/v1beta1/projects/$PROJECT_NUMBER/locations/$REGION/reasoningEngines/${AGENT_ENGINE_ID}?force=true"
+echo "Deleted Agent Engine instance: $AGENT_ENGINE_ID"
 ```
