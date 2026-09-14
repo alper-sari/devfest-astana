@@ -1,7 +1,7 @@
 <!--markdownlint-disable MD024 MD033 MD036 MD041 -->
 <walkthrough-metadata>
   <meta name="title" content="Not Risky Anymore: Enforcing Native IAM Boundaries for Production AI Agents" />
-  <meta name="description" content="Learn how to build a DevOps AI agent with Gemini 3.8 Flash, deploy to Vertex AI Agent Engine with Zero Service Accounts, and manage permissions using native SPIFFE Agent Identity." />
+  <meta name="description" content="Learn how to build a DevOps AI agent with Gemini 2.5 Flash, deploy to Vertex AI Agent Engine with Zero Service Accounts, and manage permissions using native SPIFFE Agent Identity." />
   <meta name="keywords" content="Gemini, Google Cloud, Vertex AI, Agent Engine, ADK, SPIFFE, Agent Identity, Zero Trust, DevOps" />
 </walkthrough-metadata>
 
@@ -11,7 +11,7 @@
 
 ![Tutorial header image](https://raw.githubusercontent.com/NucleusEngineering/serverless/main/.images/run.jpg)
 
-Welcome to **DevFest Astana**! In this hands-on workshop, you will build and deploy an autonomous **DevOps & SRE Agent** using Google Cloud's **Agent Development Kit (ADK)** and **Gemini 3.8 Flash**.
+Welcome to **DevFest Astana**! In this hands-on workshop, you will build and deploy an autonomous **DevOps & SRE Agent** using Google Cloud's **Agent Development Kit (ADK)** and **Gemini 2.5 Flash**.
 
 Crucially, we will **NOT** use traditional Service Account keys or assign broad Service Account roles. Instead, we deploy to Google's **Vertex AI Agent Engine** using **Native SPIFFE Workload Identity (`AGENT_IDENTITY`)**.
 
@@ -60,7 +60,7 @@ ls -la devops_agent
 ```
 
 The agent is organized into three primary files:
-- <walkthrough-editor-open-file filePath="devops_agent/agent.py">`devops_agent/agent.py`</walkthrough-editor-open-file>: Defines the ADK `Agent` powered by **Gemini 3.8 Flash** with system instructions.
+- <walkthrough-editor-open-file filePath="devops_agent/agent.py">`devops_agent/agent.py`</walkthrough-editor-open-file>: Defines the ADK `Agent` powered by **Gemini 2.5 Flash** with system instructions.
 - <walkthrough-editor-open-file filePath="devops_agent/tools.py">`devops_agent/tools.py`</walkthrough-editor-open-file>: Implements DevOps observation tools (Cloud Storage audits, Cloud Run inspection, and SPIFFE identity self-verification).
 - <walkthrough-editor-open-file filePath="devops_agent/requirements.txt">`devops_agent/requirements.txt`</walkthrough-editor-open-file>: Dependencies (`google-adk`, `google-cloud-aiplatform[agent_engines]`, `google-cloud-storage`, `google-cloud-run`).
 
@@ -70,7 +70,7 @@ Let's inspect the agent definition:
 cat devops_agent/agent.py
 ```
 
-Notice that the agent connects to Vertex AI using `gemini-3.8-flash` on the global endpoint, and registers tools for infrastructure observation without embedding any credentials or keys.
+Notice that the agent connects to Vertex AI using `gemini-2.5-flash`, and registers tools for infrastructure observation without embedding any credentials or keys.
 
 ## Install ADK CLI
 
@@ -252,7 +252,7 @@ This unequivocally proves:
 You have successfully built, deployed, and secured a production-grade DevOps Agent on Google Cloud with Native SPIFFE Agent Identity!
 
 ### What you learned:
-* How to use Google's **Agent Development Kit (ADK)** with **Gemini 3.8 Flash**.
+* How to use Google's **Agent Development Kit (ADK)** with **Gemini 2.5 Flash**.
 * The paradigm shift from static Service Accounts to **Native SPIFFE `AGENT_IDENTITY`**.
 * Enforcing **Zero Trust**: Seeing live 403 Forbidden errors until permissions are explicitly granted.
 * Granting and revoking granular IAM roles directly to `principalSet://agents.global...` principals.

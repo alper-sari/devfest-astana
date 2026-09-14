@@ -1,7 +1,7 @@
 import os
 
-# Vertex AI Gemini 3.8 Flash model endpoint is global
-os.environ["GOOGLE_CLOUD_LOCATION"] = "global"
+# Vertex AI Gemini model configuration
+os.environ.setdefault("GOOGLE_CLOUD_LOCATION", "us-central1")
 os.environ["GOOGLE_GENAI_USE_ENTERPRISE"] = "1"
 
 from google.adk import Agent
@@ -15,8 +15,8 @@ from .tools import (
     get_agent_spiffe_identity,
 )
 
-# Model configuration: Defaults to Gemini 3.8 Flash, configurable via MODEL_ID env var
-MODEL_NAME = os.environ.get("MODEL_ID", "gemini-3.8-flash")
+# Model configuration: Defaults to Gemini 2.5 Flash, configurable via MODEL_ID env var
+MODEL_NAME = os.environ.get("MODEL_ID", "gemini-2.5-flash")
 
 AGENT_INSTRUCTION = """\
 You are an autonomous Google Cloud DevOps and SRE Assistant deployed on Cloud Run.

@@ -1,6 +1,6 @@
 # Not Risky Anymore: Enforcing Native IAM Boundaries for Production AI Agents
 
-> **DevFest Astana Hands-on Workshop**: Build, deploy, and secure an autonomous DevOps & SRE AI Agent using Google Cloud's **Agent Development Kit (ADK)**, **Gemini 3.8 Flash**, and **Vertex AI Agent Engine** with **Zero Service Accounts** and **Native SPIFFE Workload Identity**.
+> **DevFest Astana Hands-on Workshop**: Build, deploy, and secure an autonomous DevOps & SRE AI Agent using Google Cloud's **Agent Development Kit (ADK)**, **Gemini 2.5 Flash**, and **Vertex AI Agent Engine** with **Zero Service Accounts** and **Native SPIFFE Workload Identity**.
 
 ---
 
@@ -23,7 +23,7 @@ This workshop demonstrates Google Cloud's next-generation **Agent Identity (`AGE
 
 ```mermaid
 flowchart LR
-    User["👨‍💻 SRE Engineer"] -->|Prompts / Questions| Agent["🤖 DevOps Agent\n(Gemini 3.8 Flash)"]
+    User["👨‍💻 SRE Engineer"] -->|Prompts / Questions| Agent["🤖 DevOps Agent\n(Gemini 2.5 Flash)"]
     Agent -->|Runs on| AE["⚡ Vertex AI Agent Engine\n(Serverless ADK Runtime)"]
     AE -->|Identity| SPIFFE["🛡️ Native AGENT_IDENTITY\n(spiffe://agents.global...)"]
     SPIFFE -->|Cloud IAM Policy Binding| IAM["🔐 Google Cloud IAM\n(roles/viewer bound to SPIFFE)"]
@@ -52,7 +52,7 @@ devfest-astana/
 │   └── tutorial.neos.md         # Interactive step-by-step walkthrough
 ├── devops_agent/
 │   ├── __init__.py              # ADK agent package initialization
-│   ├── agent.py                 # Root Agent definition & Gemini 3.8 Flash config
+│   ├── agent.py                 # Root Agent definition & Gemini 2.5 Flash config
 │   ├── tools.py                 # SRE inspection tools (Storage, Run, SPIFFE)
 │   ├── engine_spec.json         # AGENT_IDENTITY configuration
 │   ├── requirements.txt         # Container dependencies
@@ -100,7 +100,7 @@ adk deploy agent_engine \
 
 ## 🏆 DevFest Astana Presentation Highlights
 
-1. **Compare Models**: Explain how **Gemini 3.8 Flash** brings state-of-the-art agentic tool calling and reasoning with sub-second latency.
+1. **Compare Models**: Explain how **Gemini 2.5 Flash** brings state-of-the-art agentic tool calling and reasoning with sub-second latency.
 2. **Demonstrate Zero Trust**: Show the agent failing with `403 Forbidden` before permissions are granted, proving that no ambient service account access exists.
 3. **Grant Granular IAM**: Bind `roles/viewer` directly to `principalSet://agents.global.proj-<NUM>.system.id.goog/attribute.platformContainer/aiplatform/projects/<NUM>` and watch the agent immediately succeed.
 
