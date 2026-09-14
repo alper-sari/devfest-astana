@@ -159,33 +159,39 @@ adk deploy agent_engine \
 
 Cloud Build will package the container and deploy it to the serverless Reasoning Engine runtime. This takes approximately 2–3 minutes.
 
-When finished, proceed to the next step to test the agent in the Google Cloud Console UI!
+When finished, Cloud Shell will output a direct link to the agent Playground:
+`🎉 View your deployed agent here: https://console.cloud.google.com/vertex-ai/agents/...`
+
+Proceed to the next step to test the agent in the UI!
 
 ## Zero Trust Test: 403 Forbidden in UI
 
-Generate your direct link to the **Vertex AI Agent Engine Console Playground**:
+When `adk deploy` completes, your Cloud Shell terminal will display output similar to:
 
-```bash
-export AGENT_ENGINE_ID=$(cat .engine_id)
-echo "Open Agent Playground in Google Cloud Console:"
-echo "https://console.cloud.google.com/vertex-ai/agents/agent-engines/locations/$REGION/agent-engines/$AGENT_ENGINE_ID/playground?project=$PROJECT_ID"
+```text
+Deployed to Agent Platform: projects/.../reasoningEngines/...
+
+🎉 View your deployed agent here:
+https://console.cloud.google.com/vertex-ai/agents/agent-engines/locations/us-central1/agent-engines/.../playground?project=...
 ```
 
-### Action in Playground UI:
-1. Click the URL printed above to open the **Playground** tab in your browser.
-2. In the chat box at the bottom, type the following prompt and press Enter:
+### 1. Open the Playground UI
+Click the **`View your deployed agent here`** URL printed in your Cloud Shell terminal output to open the **Playground** in a new browser tab.
+
+### 2. Send the Prompt
+In the chat box at the bottom of the Playground page, paste the following prompt and press **Enter**:
 
 ```text
 List the storage buckets in our project
 ```
 
-3. **Observe the result:**
-   The agent executes the `list_storage_buckets` tool and immediately receives a **`403 Forbidden`** error!
-   
-   > `403 GET ... Caller does not have storage.buckets.list access to the Google Cloud project.`
+### 3. Observe the Zero Trust 403 Forbidden Error
+The agent executes the `list_storage_buckets` tool and immediately receives a **`403 Forbidden`** error:
 
-**Why did this happen?**
-Because this agent uses **Native `AGENT_IDENTITY`**, it does not inherit broad default service account permissions. It starts with **Zero Permissions**!
+> `403 GET ... Caller does not have storage.buckets.list access to the Google Cloud project.`
+
+**Why did this happen?**  
+Because this agent was deployed with **Native `AGENT_IDENTITY`**, it inherits **ZERO** ambient service account permissions. It starts completely unprivileged! Without an explicit Cloud IAM policy binding, it cannot read any project resources.
 
 ## Grant Access via SPIFFE Identity
 

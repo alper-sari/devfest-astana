@@ -8,7 +8,7 @@
 
 Click the button below to launch the interactive, guided walkthrough directly inside Google Cloud Shell:
 
-[![Begin the Tutorial](.journey/journey.svg)](https://console.cloud.google.com/run/overview?cloudshell_git_repo=https://github.com/alper-sari/devfest-astana.git&cloudshell_tutorial=.journey/tutorial.neos.md&show=ide&cloudshell_workspace=)
+[![Begin the Tutorial](.journey/journey.svg)](https://console.cloud.google.com/agent-platform/runtimes?cloudshell_git_repo=https://github.com/alper-sari/devfest-astana.git&cloudshell_tutorial=.journey/tutorial.neos.md&show=ide&cloudshell_workspace=)
 
 ---
 
